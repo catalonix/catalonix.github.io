@@ -2,7 +2,7 @@
 @import url("common.css");
 
 
-.t35 {font-size:35px; color:#313131; line-height:40px;}
+.t35 {font-size:35px; color:#313131; line-height:35px;}
 .t26 {font-size:26px; color:#313131; line-height:35px;}
 .t18 {font-size:18px; color:#313131; line-height:35px;}
 
@@ -66,7 +66,7 @@
 #history {padding:140px 3% 50px; height:100%; min-height:800px; background:url("../img/main_history_bg.png") no-repeat 0 0; background-size:100% 100%; box-sizing:border-box;}
 #history .history {position:relative; top:50%; left:50%; max-width:1400px; transform:translate(-50%, -50%); overflow:hidden;}
 #history .history .start {position:absolute; top:500px;}
-#history .history .list {display:flex; margin-top:60px;}
+#history .history .list {display:flex; margin-top:30px;}
 #history .history .list .item {width:34%;}
 #history .history .list .item ul {position:relative;}
 #history .history .list .item li {line-height:25px; margin-bottom:20px; padding-left:30px; background:url("../img/history_icon02.png") no-repeat 2px 8px;}
