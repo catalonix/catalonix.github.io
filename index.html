@@ -1,15 +1,72 @@
-<HTML>
-<!-- Created by HTTrack Website Copier/3.49-2 [XR&CO'2014] -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CATALONIX</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- Mirrored from catalonix.com/ by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 02 Jun 2023 17:10:00 GMT -->
-<!-- Added by HTTrack --><meta http-equiv="content-type" content="text/html;charset=utf-8" /><!-- /Added by HTTrack -->
-<HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html;charset=UTF-8"><META HTTP-EQUIV="Refresh" CONTENT="0; URL=ko/index.html"><TITLE>Page has moved</TITLE>
-</HEAD>
-<BODY>
-<A HREF="ko/index.html"><h3>Click here...</h3></A>
-</BODY>
-<!-- Created by HTTrack Website Copier/3.49-2 [XR&CO'2014] -->
+    <style>
+        body, html {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'IBM Plex Sans KR', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
 
-<!-- Mirrored from catalonix.com/ by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 02 Jun 2023 17:10:00 GMT -->
-</HTML>
+        /* 비디오 전체화면 */
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        /* 버튼 컨테이너 */
+        .center-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        button {
+            font-size: 24px;
+            padding: 15px 40px;
+            margin: 15px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            background: rgba(255,255,255,0.8);
+            transition: 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: rgba(255,255,255,1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 무한 반복 백그라운드 영상 -->
+    <video id="bg-video" autoplay loop muted playsinline>
+        <source src="res/video/intro.mp4" type="video/mp4">
+    </video>
+
+    <div class="center-box">
+        <button onclick="location.href='ko/index.html'">회사 소개</button>
+        <button onclick="location.href='product/index.html'">제품 소개</button>
+    </div>
+
+</body>
+</html>
