@@ -443,11 +443,11 @@
 
             <!-- Tab Navigation -->
             <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-12 reveal">
-                <button onclick="switchTab('largepatch')" class="tab-btn active px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">라지패치</button>
-                <button onclick="switchTab('pythium')" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">피시움</button>
-                <button onclick="switchTab('summerpatch')" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">썸머패치</button>
-                <button onclick="switchTab('dollarspot')" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">달라스팟</button>
-                <button onclick="switchTab('grubs')" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">굼벵이</button>
+                <button onclick="switchTab('largepatch',this)" class="tab-btn active px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">라지패치</button>
+                <button onclick="switchTab('pythium',this)" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">피시움</button>
+                <button onclick="switchTab('summerpatch',this)" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">썸머패치</button>
+                <button onclick="switchTab('dollarspot',this)" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">달라스팟</button>
+                <button onclick="switchTab('grubs',this)" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">굼벵이</button>
             </div>
 
             <!-- Dynamic Content Area -->
@@ -647,47 +647,64 @@
             }
         };
 
-        function switchTab(key) {
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('active', 'bg-primary', 'text-white', 'border-primary');
-                btn.classList.add('bg-white', 'text-gray-600', 'border-gray-300');
-            });
-            event.target.classList.add('active', 'bg-primary', 'text-white', 'border-primary');
-            event.target.classList.remove('bg-white', 'text-gray-600', 'border-gray-300');
+        function switchTab(key, el = null) {
+    // 모든 버튼 리셋
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-primary', 'text-white', 'border-primary');
+        btn.classList.add('bg-white', 'text-gray-600', 'border-gray-300');
+    });
 
-            const data = ipmData[key];
-            const html = `
-                <div class="grid lg:grid-cols-2 gap-12 animate-fade-in">
-                    <div class="flex flex-col justify-center">
-                        <div class="flex items-center gap-3 mb-4">
-                            <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold uppercase tracking-wider border border-gray-200">AI Diagnosis</span>
-                            <h3 class="text-3xl font-bold text-gray-900 m-0">${data.title}</h3>
-                        </div>
-                        <p class="text-gray-500 italic mb-6 border-b pb-4">${data.subtitle}</p>
-                        <p class="text-lg text-gray-700 mb-8 leading-relaxed">${data.desc}</p>
-                        <div class="bg-gray-50 border-l-4 border-gray-800 p-6 rounded-r-lg">
-                            <h4 class="font-bold text-gray-900 mb-2 flex items-center"><i class="fas fa-satellite-dish mr-3 text-gray-600"></i>CatSat™ 감지 신호</h4>
-                            <p class="text-gray-700 font-medium">${data.signal}</p>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="action-card type-machine p-6 rounded-xl bg-blue-50 border-l-4 border-blue-500 hover:shadow-md transition">
-                            <h4 class="font-bold text-blue-800 mb-2 flex items-center text-lg"><i class="fas fa-tractor w-8"></i>기계적 조치</h4>
-                            <p class="text-sm text-gray-700 leading-relaxed">${data.machine}</p>
-                        </div>
-                        <div class="action-card type-fert p-6 rounded-xl bg-green-50 border-l-4 border-green-500 hover:shadow-md transition">
-                            <h4 class="font-bold text-green-800 mb-2 flex items-center text-lg"><i class="fas fa-seedling w-8"></i>경종적 조치</h4>
-                            <p class="text-sm text-gray-700 leading-relaxed">${data.fert}</p>
-                        </div>
-                        <div class="action-card type-chem p-6 rounded-xl bg-red-50 border-l-4 border-red-500 hover:shadow-md transition">
-                            <h4 class="font-bold text-red-800 mb-2 flex items-center text-lg"><i class="fas fa-flask w-8"></i>화학적 조치</h4>
-                            <p class="text-sm text-gray-700 leading-relaxed">${data.chem}</p>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.getElementById('ipm-content').innerHTML = html;
+    // 클릭으로 실행된 경우
+    if (el) {
+        el.classList.add('active', 'bg-primary', 'text-white', 'border-primary');
+        el.classList.remove('bg-white', 'text-gray-600', 'border-gray-300');
+    } 
+    // 초기 자동 실행일 경우 (el == null)
+    else {
+        const defaultBtn = document.querySelector('.tab-btn');
+        if (defaultBtn) {
+            defaultBtn.classList.add('active', 'bg-primary', 'text-white', 'border-primary');
+            defaultBtn.classList.remove('bg-white', 'text-gray-600', 'border-gray-300');
         }
+    }
+
+    // 콘텐츠 렌더링
+    const data = ipmData[key];
+    if (!data) return;
+
+    const html = `
+        <div class="grid lg:grid-cols-2 gap-12 animate-fade-in">
+            <div class="flex flex-col justify-center">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold uppercase tracking-wider border border-gray-200">AI Diagnosis</span>
+                    <h3 class="text-3xl font-bold text-gray-900 m-0">${data.title}</h3>
+                </div>
+                <p class="text-gray-500 italic mb-6 border-b pb-4">${data.subtitle}</p>
+                <p class="text-lg text-gray-700 mb-8 leading-relaxed">${data.desc}</p>
+                <div class="bg-gray-50 border-l-4 border-gray-800 p-6 rounded-r-lg">
+                    <h4 class="font-bold text-gray-900 mb-2 flex items-center"><i class="fas fa-satellite-dish mr-3 text-gray-600"></i>CatSat™ 감지 신호</h4>
+                    <p class="text-gray-700 font-medium">${data.signal}</p>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="action-card type-machine p-6 rounded-xl bg-blue-50 border-l-4 border-blue-500 hover:shadow-md transition">
+                    <h4 class="font-bold text-blue-800 mb-2 flex items-center text-lg"><i class="fas fa-tractor w-8"></i>기계적 조치</h4>
+                    <p class="text-sm text-gray-700 leading-relaxed">${data.machine}</p>
+                </div>
+                <div class="action-card type-fert p-6 rounded-xl bg-green-50 border-l-4 border-green-500 hover:shadow-md transition">
+                    <h4 class="font-bold text-green-800 mb-2 flex items-center text-lg"><i class="fas fa-seedling w-8"></i>경종적 조치</h4>
+                    <p class="text-sm text-gray-700 leading-relaxed">${data.fert}</p>
+                </div>
+                <div class="action-card type-chem p-6 rounded-xl bg-red-50 border-l-4 border-red-500 hover:shadow-md transition">
+                    <h4 class="font-bold text-red-800 mb-2 flex items-center text-lg"><i class="fas fa-flask w-8"></i>화학적 조치</h4>
+                    <p class="text-sm text-gray-700 leading-relaxed">${data.chem}</p>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('ipm-content').innerHTML = html;
+}
 
         document.addEventListener('DOMContentLoaded', () => {
             switchTab('largepatch');
