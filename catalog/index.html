@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카탈로닉스 | 위성-AI 그린인프라 플랫폼</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#047857',
+                        secondary: '#10b981',
+                        dark: '#064e3b',
+                        accent: '#fbbf24',
+                        light: '#f0fdf4'
+                    },
+                    fontFamily: {
+                        sans: ['Pretendard', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        },
+                        typing: {
+                            '0%, 80%, 100%': { transform: 'scale(0)' },
+                            '40%': { transform: 'scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Pretendard', sans-serif; overflow-x: hidden; }
+        
+        /* Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Card Effects */
+        .tech-card { transition: all 0.3s ease; }
+        .tech-card:hover { transform: translateY(-10px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        
+        /* Tab Interaction */
+        .tab-btn { transition: all 0.3s; }
+        .tab-btn.active {
+            background-color: #047857;
+            color: white;
+            border-color: #047857;
+            box-shadow: 0 4px 6px -1px rgba(4, 120, 87, 0.3);
+        }
+
+        /* Hexagon Animation */
+        .hexagon-path {
+            transition: all 1s ease-in-out;
+            transform-origin: center;
+        }
+        .hexagon-wrapper:hover .hexagon-path {
+            transform: scale(1.05);
+        }
+        
+        /* Action Card Styles */
+        .action-card {
+            border-left: 4px solid;
+            transition: transform 0.2s;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .action-card:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .type-machine { border-color: #2563eb; }
+        .type-fert { border-color: #16a34a; }
+        .type-chem { border-color: #dc2626; }
+
+        /* Business Model Card Image Zoom */
+        .bm-card { overflow: hidden; }
+        .bm-card img { transition: transform 0.5s ease; }
+        .bm-card:hover img { transform: scale(1.05); }
+
+        /* AI Chat UI */
+        .ai-fab {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 100;
+            background: linear-gradient(135deg, #059669, #34d399);
+            color: white; width: 64px; height: 64px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pulse-slow 2s infinite;
+        }
+        .ai-fab:hover { transform: scale(1.1) rotate(10deg); }
+        
+        .ai-modal {
+            position: fixed; bottom: 6rem; right: 2rem; width: 380px; height: 600px;
+            background: white; border-radius: 1.5rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            z-index: 99; transform: translateY(20px) scale(0.95); opacity: 0; pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column; overflow: hidden; border: 1px solid #e5e7eb;
+        }
+        .ai-modal.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: auto; }
+        
+        .chat-messages { flex: 1; overflow-y: auto; padding: 1.5rem; background: #f9fafb; }
+        .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 12px; margin-bottom: 12px; font-size: 0.9rem; line-height: 1.5; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .chat-user { background: #059669; color: white; align-self: flex-end; margin-left: auto; border-bottom-right-radius: 2px; }
+        .chat-ai { background: white; border: 1px solid #e5e7eb; color: #374151; align-self: flex-start; margin-right: auto; border-bottom-left-radius: 2px; }
+        
+        .typing-indicator span {
+            display: inline-block; width: 6px; height: 6px; background-color: #9ca3af;
+            border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; margin: 0 2px;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- AI Chat Button & Modal -->
+    <div class="ai-fab" onclick="toggleAI()">
+        <i class="fas fa-robot text-2xl"></i>
+    </div>
+
+    <div class="ai-modal" id="aiModal">
+        <div class="bg-primary p-4 flex justify-between items-center text-white shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                    <i class="fas fa-satellite-dish text-lg"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm">CatSat™ AI Coordinator</h4>
+                    <p class="text-xs text-green-100 flex items-center gap-1"><span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Online Analysis</p>
+                </div>
+            </div>
+            <button onclick="toggleAI()" class="hover:bg-white/20 p-2 rounded-full transition"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="chat-messages flex flex-col" id="chatContainer">
+            <div class="chat-bubble chat-ai">
+                안녕하세요! 🌱<br>
+                <strong>카탈로닉스 AI 그린 코디네이터</strong>입니다.<br><br>
+                현재 잔디의 상태나 증상을 말씀해 주시면, <strong>위성 데이터 및 IPM 매트릭스</strong>를 기반으로 분석해 드립니다.<br><br>
+                👇 <em>예시 질문을 클릭하거나 입력해보세요.</em>
+            </div>
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button onclick="sendPreset('비가 온 뒤 잔디가 물러지고 있어')" class="text-xs bg-white border border-green-200 text-green-700 px-3 py-1 rounded-full hover:bg-green-50 transition">🌧️ 비 온 뒤 물러짐</button>
+                <button onclick="sendPreset('도넛 모양의 갈색 병반이 보여')" class="text-xs bg-white border border-green-200 text-green-700 px-3 py-1 rounded-full hover:bg-green-50 transition">🍩 도넛 모양 병반</button>
+                <button onclick="sendPreset('그린에 동전 크기 반점이 생겼어')" class="text-xs bg-white border border-green-200 text-green-700 px-3 py-1 rounded-full hover:bg-green-50 transition">🪙 동전 크기 반점</button>
+            </div>
+        </div>
+        <div class="p-4 bg-white border-t border-gray-200">
+            <div class="flex gap-2 relative">
+                <input type="text" id="userInput" class="flex-1 bg-gray-100 border-0 rounded-full px-4 py-3 text-sm focus:ring-2 focus:ring-primary focus:bg-white outline-none transition" placeholder="증상을 입력하세요..." onkeypress="if(event.key === 'Enter') sendMessage()">
+                <button onclick="sendMessage()" class="w-10 h-10 bg-primary text-white rounded-full hover:bg-dark transition flex items-center justify-center shadow-md absolute right-1 top-1">
+                    <i class="fas fa-paper-plane text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 nav-glass transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="window.scrollTo(0,0)">
+                    <i class="fas fa-satellite text-primary text-3xl mr-2"></i>
+                    <span class="font-bold text-2xl tracking-tight text-gray-900">CATALONIX</span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="#technology" class="text-gray-600 hover:text-primary font-medium transition">핵심 기술</a>
+                    <a href="#diagnosis" class="text-gray-600 hover:text-primary font-medium transition">정밀 진단</a>
+                    <a href="#lineup" class="text-gray-600 hover:text-primary font-medium transition">제품 라인업</a>
+                    <a href="#solution" class="text-gray-600 hover:text-primary font-medium transition">IPM 솔루션</a>
+                    <a href="#business" class="text-gray-600 hover:text-primary font-medium transition">비즈니스 모델</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-gray-600 focus:outline-none p-2" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t absolute w-full shadow-lg">
+            <a href="#technology" class="block px-6 py-4 text-gray-700 hover:bg-gray-50 border-b">핵심 기술</a>
+            <a href="#diagnosis" class="block px-6 py-4 text-gray-700 hover:bg-gray-50 border-b">정밀 진단</a>
+            <a href="#lineup" class="block px-6 py-4 text-gray-700 hover:bg-gray-50 border-b">제품 라인업</a>
+            <a href="#solution" class="block px-6 py-4 text-gray-700 hover:bg-gray-50 border-b">IPM 솔루션</a>
+            <a href="#business" class="block px-6 py-4 text-gray-700 hover:bg-gray-50">비즈니스 모델</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative h-screen flex items-center justify-center overflow-hidden bg-gray-900">
+        <!-- Background Image -->
+        <div class="absolute inset-0 z-0">
+            [Image of golf course aerial view]
+            <img src="https://images.unsplash.com/photo-1587174486073-ae5e5cff23aa?q=80&w=2070&auto=format&fit=crop" alt="Smart Farm & Golf Course" class="w-full h-full object-cover opacity-40">
+            <div class="absolute inset-0 bg-gradient-to-b from-gray-900/60 via-gray-900/40 to-gray-900"></div>
+        </div>
+        
+        <div class="relative z-20 text-center px-4 max-w-5xl mx-auto reveal active">
+            <div class="inline-flex items-center px-4 py-1 mb-8 rounded-full bg-green-500/20 border border-green-400 text-green-300 font-bold text-sm tracking-widest uppercase backdrop-blur-sm animate-float">
+                <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                Next-Gen Green Infrastructure Platform
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight">
+                위성 데이터로 연결하는<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-200">초정밀 잔디 관리의 미래</span>
+            </h1>
+            <p class="text-lg md:text-2xl text-gray-300 mb-12 font-light leading-relaxed max-w-3xl mx-auto">
+                경험에 의존하던 관리는 끝났습니다.<br>
+                <strong>CatSat™</strong>은 우주에서 세포 단위까지 진단하여 최적의 처방을 내립니다.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#lineup" class="px-8 py-4 bg-primary hover:bg-secondary text-white rounded-lg font-bold text-lg transition shadow-lg transform hover:-translate-y-1 text-center">
+                    제품 라인업 보기
+                </a>
+                <button onclick="toggleAI()" class="px-8 py-4 bg-white/10 hover:bg-white/20 text-white border border-white/30 rounded-lg font-bold text-lg transition backdrop-blur-md text-center">
+                    AI 진단 데모
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 1: Technology -->
+    <section id="technology" class="py-20 md:py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-20 reveal">
+                <h2 class="text-sm font-bold text-primary tracking-widest uppercase mb-2">Core Technology</h2>
+                <p class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">CatSat™ 위성-AI 융합 플랫폼</p>
+                <p class="max-w-2xl mx-auto text-xl text-gray-500">
+                    단일 위성의 한계를 극복하는 <strong>가상 군집화(Virtual Constellation)</strong> 기술로<br>매일, 고해상도, 다분광 데이터를 제공합니다.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Tech Card 1 -->
+                <div class="tech-card bg-gray-50 rounded-2xl p-8 border border-gray-100 reveal">
+                    <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 mb-6 text-3xl">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">시간 해상도 (Daily)</h3>
+                    <p class="text-gray-600 mb-6">PlanetScope 위성군을 활용하여 매일 아침 잔디의 상태 변화를 추적합니다.</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center text-sm text-gray-600 bg-white p-3 rounded-lg border border-gray-200">
+                            <i class="fas fa-check text-green-500 mr-3"></i> <span>일일 재방문 주기</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tech Card 2 -->
+                <div class="tech-card bg-gray-50 rounded-2xl p-8 border border-gray-100 reveal transition-delay-100">
+                    <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center text-green-600 mb-6 text-3xl">
+                        <i class="fas fa-microscope"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">초해상화 & 초분광화</h3>
+                    <p class="text-gray-600 mb-6">AI로 3m 영상을 0.5m급으로 변환하고, 누락된 Red-Edge 밴드를 복원합니다.</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center text-sm text-gray-600 bg-white p-3 rounded-lg border border-gray-200">
+                            <i class="fas fa-check text-green-500 mr-3"></i> <span>Super-Resolution (0.5m)</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Tech Card 3 -->
+                <div class="tech-card bg-gray-50 rounded-2xl p-8 border border-gray-100 reveal transition-delay-200">
+                    <div class="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 mb-6 text-3xl">
+                        <i class="fas fa-temperature-high"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">열환경 모니터링</h3>
+                    <p class="text-gray-600 mb-6">Landsat의 열적외선 센서로 지표면 온도(LST)를 측정해 수분 스트레스를 감지합니다.</p>
+                    <div class="space-y-3">
+                        <div class="flex items-center text-sm text-gray-600 bg-white p-3 rounded-lg border border-gray-200">
+                            <i class="fas fa-check text-green-500 mr-3"></i> <span>썸머패치 핫스팟 탐지</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 2: Diagnosis Logic (DML) & Dynamic Hexagon -->
+    <section id="diagnosis" class="py-20 md:py-32 bg-gray-900 text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-1/2 h-full bg-green-900/20 blur-3xl rounded-full translate-x-1/2 pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <div class="reveal">
+                    <h2 class="text-4xl font-bold mb-6">동적 임계값 로직<br><span class="text-secondary">(DML: Dynamic Matrix Logic)</span></h2>
+                    <p class="text-gray-300 text-lg mb-10 leading-relaxed">
+                        잔디의 '정상' 기준은 고정되어 있지 않습니다.<br>
+                        계절과 날씨에 따라 살아 움직이는 임계값으로 오진을 방지합니다.
+                    </p>
+                    <div class="mt-6 p-6 bg-black/40 rounded-xl border border-gray-700 font-mono text-sm shadow-inner">
+                        <span class="text-gray-500">// Algorithm Core</span><br>
+                        Threshold(t) = Base × <span class="text-blue-400">K_season(t)</span> × <span class="text-red-400">K_weather(t)</span>
+                    </div>
+                </div>
+                
+                <div class="relative reveal flex justify-center">
+                    <!-- Interactive Hexagon Visualization -->
+                    <div class="relative w-full max-w-md aspect-square bg-gray-800 rounded-full p-8 border border-gray-700 flex items-center justify-center shadow-2xl hexagon-wrapper">
+                        <!-- SVG Hexagon -->
+                        <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-lg">
+                            <!-- Background Grid -->
+                            <polygon points="50 5, 90 27, 90 73, 50 95, 10 73, 10 27" fill="transparent" stroke="#374151" stroke-width="0.5"/>
+                            <line x1="50" y1="50" x2="50" y2="5" stroke="#374151" stroke-width="0.5"/>
+                            <line x1="50" y1="50" x2="90" y2="27" stroke="#374151" stroke-width="0.5"/>
+                            <line x1="50" y1="50" x2="90" y2="73" stroke="#374151" stroke-width="0.5"/>
+                            <line x1="50" y1="50" x2="50" y2="95" stroke="#374151" stroke-width="0.5"/>
+                            <line x1="50" y1="50" x2="10" y2="73" stroke="#374151" stroke-width="0.5"/>
+                            <line x1="50" y1="50" x2="10" y2="27" stroke="#374151" stroke-width="0.5"/>
+                            
+                            <!-- Animated Data Shape -->
+                            <polygon class="hexagon-path" points="50 15, 85 35, 80 65, 50 85, 20 65, 15 35" fill="rgba(16, 185, 129, 0.4)" stroke="#10b981" stroke-width="2">
+                                <animate attributeName="points" dur="3s" repeatCount="indefinite"
+                                    values="50 15, 85 35, 80 65, 50 85, 20 65, 15 35;
+                                            50 10, 90 30, 85 70, 50 90, 15 70, 10 30;
+                                            50 15, 85 35, 80 65, 50 85, 20 65, 15 35" />
+                            </polygon>
+                        </svg>
+                        <!-- Labels -->
+                        <div class="absolute inset-0 pointer-events-none">
+                            <span class="absolute top-4 left-1/2 -translate-x-1/2 text-xs font-bold text-green-400 bg-gray-900/80 px-2 rounded">① 구조적 활력</span>
+                            <span class="absolute top-1/4 right-0 translate-x-2 text-xs font-bold text-green-400 bg-gray-900/80 px-2 rounded">② 생리적 건강</span>
+                            <span class="absolute bottom-1/4 right-0 translate-x-2 text-xs font-bold text-blue-400 bg-gray-900/80 px-2 rounded">③ 수분 밸런스</span>
+                            <span class="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs font-bold text-blue-400 bg-gray-900/80 px-2 rounded">④ 기상 호적도</span>
+                            <span class="absolute bottom-1/4 left-0 -translate-x-2 text-xs font-bold text-red-400 bg-gray-900/80 px-2 rounded">⑤ 병해충 안전</span>
+                            <span class="absolute top-1/4 left-0 -translate-x-2 text-xs font-bold text-red-400 bg-gray-900/80 px-2 rounded">⑥ 회복 잠재력</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 3: Product Lineup (Replaced Market Analysis) -->
+    <section id="lineup" class="py-20 md:py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-sm font-bold text-secondary tracking-widest uppercase mb-2">Product Lineup</h2>
+                <p class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">Green Infrastructure DX Solutions</p>
+                <p class="max-w-2xl mx-auto text-xl text-gray-500">
+                    골프장부터 도심 녹지, 스마트팜까지.<br>모든 그린인프라를 위한 통합 솔루션입니다.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 items-start reveal">
+                <!-- Main Product: GDX -->
+                <div class="glass p-8 md:p-12 border-l-8 border-primary relative overflow-hidden group hover:shadow-2xl transition duration-300 h-full bg-gradient-to-br from-green-50 to-white">
+                    <div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition transform group-hover:scale-110 duration-500">
+                        <i class="fas fa-golf-ball text-9xl text-green-900"></i>
+                    </div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="bg-primary text-white px-3 py-1 rounded text-sm font-bold uppercase tracking-wider shadow-sm">Flagship</span>
+                        <h3 class="text-4xl font-extrabold text-gray-900 m-0">GDX <span class="text-lg font-normal text-gray-500">(Golf DX)</span></h3>
+                    </div>
+                    <p class="text-xl text-gray-700 mb-8 font-medium">골프장 코스관리 올인원 플랫폼</p>
+                    <ul class="space-y-4 text-gray-700 text-lg">
+                        <li class="flex items-start"><i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i><span><strong>AI 통합 관제:</strong> 내장객, 작업현황, 코스상태 대시보드</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i><span><strong>LLM 어시스턴트:</strong> 대화형 작업 지시 및 리포트 자동화</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i><span><strong>Reference:</strong> HDC 오크밸리, 서서울CC</span></li>
+                    </ul>
+                </div>
+
+                <!-- Secondary Products Grid -->
+                <div class="grid gap-6">
+                    <!-- Sports-DX -->
+                    <div class="glass p-6 flex flex-col md:flex-row items-start md:items-center gap-6 hover:bg-blue-50 transition border-l-4 border-blue-600 cursor-pointer group">
+                        <div class="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
+                            <i class="fas fa-futbol text-3xl text-blue-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-gray-900 group-hover:text-blue-700 transition">Sports-DX (경기장)</h4>
+                            <p class="text-sm text-gray-500 mb-2">프로 스포츠 구장 잔디 정밀 관리</p>
+                            <p class="text-sm font-bold text-blue-700 flex items-center"><i class="fas fa-map-marker-alt mr-2"></i>서울월드컵경기장 (상암)</p>
+                        </div>
+                    </div>
+                    <!-- Green-DX -->
+                    <div class="glass p-6 flex flex-col md:flex-row items-start md:items-center gap-6 hover:bg-emerald-50 transition border-l-4 border-emerald-600 cursor-pointer group">
+                        <div class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
+                            <i class="fas fa-tree text-3xl text-emerald-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-gray-900 group-hover:text-emerald-700 transition">Green-DX (도심/산림)</h4>
+                            <p class="text-sm text-gray-500 mb-2">가로수, 공원, 산림 탄소 모니터링</p>
+                            <p class="text-sm font-bold text-emerald-700 flex items-center"><i class="fas fa-map-marker-alt mr-2"></i>국립세종수목원, 서울시설공단</p>
+                        </div>
+                    </div>
+                    <!-- Agri-DX -->
+                    <div class="glass p-6 flex flex-col md:flex-row items-start md:items-center gap-6 hover:bg-amber-50 transition border-l-4 border-amber-500 cursor-pointer group">
+                        <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition">
+                            <i class="fas fa-seedling text-3xl text-amber-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-xl font-bold text-gray-900 group-hover:text-amber-700 transition">Agri-DX (스마트농업)</h4>
+                            <p class="text-sm text-gray-500 mb-2">노지/시설 작물 생육 진단 및 수확량 예측</p>
+                            <p class="text-sm font-bold text-amber-700 flex items-center"><i class="fas fa-map-marker-alt mr-2"></i>강원대 스마트팜, 인제 파프리카</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 4: IPM Solution (Detailed Tabs) -->
+    <section id="solution" class="py-20 md:py-32 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-sm font-bold text-primary tracking-widest uppercase mb-2">IPM Solution</h2>
+                <p class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">통합 병해충 관리 & 정밀 처방</p>
+                <p class="max-w-2xl mx-auto text-xl text-gray-500">
+                    진단에서 끝나지 않습니다. <span class="text-primary font-bold">장비, 시비, 시약</span>을 아우르는<br>전문가 수준의 입체적 처방을 제공합니다.
+                </p>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-12 reveal">
+                <button onclick="switchTab('largepatch')" class="tab-btn active px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">라지패치</button>
+                <button onclick="switchTab('pythium')" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">피시움</button>
+                <button onclick="switchTab('summerpatch')" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">썸머패치</button>
+                <button onclick="switchTab('dollarspot')" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">달라스팟</button>
+                <button onclick="switchTab('grubs')" class="tab-btn px-6 py-3 rounded-full border border-gray-300 font-bold bg-white text-gray-600 hover:bg-primary hover:text-white hover:border-primary">굼벵이</button>
+            </div>
+
+            <!-- Dynamic Content Area -->
+            <div id="ipm-content" class="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-gray-100 reveal transition-all min-h-[500px]">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Part 5: Business Model -->
+    <section id="business" class="py-20 md:py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <h2 class="text-sm font-bold text-primary tracking-widest uppercase mb-2">Business Model</h2>
+                <p class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">Turf-Chain 생태계</p>
+                <p class="max-w-2xl mx-auto text-xl text-gray-500">수요자(골프장)와 공급자(농가)를 <strong>데이터로 연결하는 순환형 플랫폼</strong>입니다.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal">
+                <!-- BM 1: SaaS -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:-translate-y-2 transition duration-300 bm-card">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop" alt="Dashboard" class="w-full h-40 object-cover">
+                    <div class="p-6">
+                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-4 text-xl"><i class="fas fa-desktop"></i></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">SaaS 구독</h3>
+                        <p class="text-gray-500 text-sm mb-4">위성 모니터링 & AI 진단 리포트</p>
+                    </div>
+                </div>
+                <!-- BM 2: SCM -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:-translate-y-2 transition duration-300 bm-card">
+                    <img src="https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=2069&auto=format&fit=crop" alt="Golf Course Maintenance" class="w-full h-40 object-cover">
+                    <div class="p-6">
+                        <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mb-4 text-xl"><i class="fas fa-handshake"></i></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">SCM 매칭</h3>
+                        <p class="text-gray-500 text-sm mb-4">수요 예측 기반 자동 발주 & 중개</p>
+                    </div>
+                </div>
+                <!-- BM 3: Certification -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:-translate-y-2 transition duration-300 bm-card">
+                    <img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2070&auto=format&fit=crop" alt="Certified" class="w-full h-40 object-cover">
+                    <div class="p-6">
+                        <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center mb-4 text-xl"><i class="fas fa-certificate"></i></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">데이터 인증</h3>
+                        <p class="text-gray-500 text-sm mb-4">Turfvision-Certified 품질 인증</p>
+                    </div>
+                </div>
+                <!-- BM 4: O&M -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:-translate-y-2 transition duration-300 bm-card">
+                    <img src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop" alt="Maintenance" class="w-full h-40 object-cover">
+                    <div class="p-6">
+                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4 text-xl"><i class="fas fa-tools"></i></div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">O&M 운영</h3>
+                        <p class="text-gray-500 text-sm mb-4">통합 위탁 운영 & 비용 절감 공유</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 border-t border-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-6 md:mb-0">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="fas fa-satellite text-primary text-2xl"></i>
+                    <span class="font-bold text-xl">CATALONIX</span>
+                </div>
+                <p class="text-gray-500 text-sm">Data that makes a difference.</p>
+            </div>
+            <div class="flex gap-8 text-sm text-gray-400">
+                <a href="#" class="hover:text-white transition">회사 소개</a>
+                <a href="#" class="hover:text-white transition">솔루션 문의</a>
+                <a href="#" class="hover:text-white transition">개인정보처리방침</a>
+            </div>
+            <div class="mt-6 md:mt-0 text-sm text-gray-600">
+                &copy; 2025 Catalonix Inc. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Scroll Reveal Animation
+        function reveal() {
+            var reveals = document.querySelectorAll(".reveal");
+            for (var i = 0; i < reveals.length; i++) {
+                var windowHeight = window.innerHeight;
+                var elementTop = reveals[i].getBoundingClientRect().top;
+                var elementVisible = 100;
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add("active");
+                }
+            }
+        }
+        window.addEventListener("scroll", reveal);
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        }
+
+        // AI Chat Demo Logic
+        function toggleAI() {
+            const modal = document.getElementById('aiModal');
+            modal.classList.toggle('open');
+            if (modal.classList.contains('open')) document.getElementById('userInput').focus();
+        }
+
+        function sendPreset(text) {
+            document.getElementById('userInput').value = text;
+            sendMessage();
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML += `<div class="chat-bubble chat-user">${message}</div>`;
+            input.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            const typingId = 'typing-' + Date.now();
+            chatContainer.innerHTML += `
+                <div class="chat-bubble chat-ai typing-indicator" id="${typingId}">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            setTimeout(() => {
+                document.getElementById(typingId).remove();
+                let reply = "죄송합니다. 해당 증상에 대한 정보가 부족합니다. 다시 설명해 주세요.";
+                
+                if (message.includes("갈색") || message.includes("도넛") || message.includes("라지패치")) {
+                    reply = "<strong>[AI 진단: 라지패치 의심]</strong><br>도넛 모양의 갈색 병반은 라지패치의 전형적인 증상입니다.<br><br>👉 <strong>처방:</strong><br>1. 예지 중단 (전파 방지)<br>2. 질소 시비 중단<br>3. Azoxystrobin 예방 시약 살포 권장";
+                } else if (message.includes("물러") || message.includes("비") || message.includes("피시움")) {
+                    reply = "<strong>[AI 진단: 피시움 블라이트 경고]</strong><br>고온 다습한 환경에서 잎이 물러지는 현상은 피시움일 가능성이 매우 높습니다.<br><br>👉 <strong>긴급 처방:</strong><br>1. 송풍기 가동 (건조)<br>2. 장비 진입 금지<br>3. Cyazofamid 관주 처리 필요";
+                } else if (message.includes("동전") || message.includes("달라스팟")) {
+                    reply = "<strong>[AI 진단: 달라스팟]</strong><br>질소 결핍 시 발생하는 동전 크기 반점입니다.<br><br>👉 <strong>처방:</strong><br>1. 아침 이슬 제거<br>2. 소량의 질소 비료 시비 (Spoon feeding)";
+                } else if (message.includes("온도") || message.includes("열") || message.includes("썸머")) {
+                    reply = "<strong>[AI 진단: 썸머패치 전조]</strong><br>지표면 온도가 주변보다 3도 이상 높습니다. 뿌리 기능 저하가 의심됩니다.<br><br>👉 <strong>처방:</strong><br>1. 쿨링 시린징 (오후 1시)<br>2. 예고 상향 조정";
+                }
+
+                chatContainer.innerHTML += `<div class="chat-bubble chat-ai">${reply}</div>`;
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 1200);
+        }
+
+        // IPM Tab Content & Switcher
+        const ipmData = {
+            largepatch: {
+                title: "라지패치 (Large Patch)",
+                subtitle: "Rhizoctonia solani AG 2-2",
+                desc: "한국잔디 휴면 타파기(봄)와 진입기(가을)에 치명적인 병해. 대취층에 병원균이 서식하며 배수 불량지에서 호발합니다.",
+                signal: "도넛형 패턴 + NDWI 감소 선행",
+                machine: "<strong>예지 중단:</strong> 병반 주변 2m 예지 금지 (전파 차단)<br><strong>대취 제거:</strong> 버티컷 실행, 배수 개선",
+                fert: "<strong>질소 중단:</strong> 발병기 속효성 질소 금지<br><strong>규산 시비:</strong> 세포벽 물리적 강화",
+                chem: "<strong>예방:</strong> Azoxystrobin, Tebuconazole<br><strong>치료:</strong> Pencycuron 관주 처리"
+            },
+            pythium: {
+                title: "피시움 블라이트 (Pythium)",
+                subtitle: "Pythium spp.",
+                desc: "고온 다습한 환경에서 24시간 내 잔디를 전멸시키는 급성 전염병. 물길을 따라 포자가 이동하므로 물 관리가 핵심입니다.",
+                signal: "NDWI 역설 (초기 급등 후 붕괴) + 선형 확산",
+                machine: "<strong>송풍기 가동:</strong> 24시간 가동하여 엽면 건조<br><strong>진입 금지:</strong> 이슬 있을 때 장비 진입 전면 통제",
+                fert: "<strong>질소 제한:</strong> 고온기 질소 시비 최소화<br><strong>인산 주의:</strong> 인산 과다 시 발병 조장 유의",
+                chem: "<strong>전문 약제:</strong> Cyazofamid (난균류 전용)<br><strong>저항성 관리:</strong> 계통 교호 살포 필수"
+            },
+            summerpatch: {
+                title: "썸머패치 (Summer Patch)",
+                subtitle: "Magnaporthiopsis poae",
+                desc: "늦봄에 뿌리를 감염시켜 한여름 고온기에 말려 죽이는 병해. 뿌리 기능 저하로 인한 생리적 가뭄 상태입니다.",
+                signal: "LST(온도) 핫스팟 선행 + 디커플링",
+                machine: "<strong>시린징:</strong> 한낮 미세 살수로 엽온 쿨링<br><strong>예고 상향:</strong> 엽면적 확보하여 뿌리 발달 유도",
+                fert: "<strong>망간(Mn):</strong> 필수 미량요소 엽면 시비<br><strong>산성 비료:</strong> 유안 등으로 토양 pH 하향 조절",
+                chem: "<strong>예방 관주:</strong> 늦봄(18°C) 예방 약제 토양 관주<br><strong>치료:</strong> 고농도 침투성 살균제 관주"
+            },
+            dollarspot: {
+                title: "달라스팟 (Dollar Spot)",
+                subtitle: "Clarireedia spp.",
+                desc: "질소 결핍과 이슬이 맺히는 환경에서 발생하는 동전 크기의 병반. '배고픈 잔디'에 발생하는 대표적인 병해입니다.",
+                signal: "NDRE(질소) 하락 디커플링 + 점박이 패턴",
+                machine: "<strong>이슬 제거:</strong> 아침 일찍 스위핑(Sweeping)<br><strong>롤링:</strong> 가벼운 롤링으로 내병성 증대",
+                fert: "<strong>질소 공급:</strong> 소량 다회 시비(Spoon feeding)<br><strong>적기 시비:</strong> NDRE 하락 시 즉시 액비 살포",
+                chem: "<strong>치료:</strong> Boscalid, Chlorothalonil<br><strong>저항성:</strong> 내성 발현 잦음, 혼용 살포 권장"
+            },
+            grubs: {
+                title: "굼벵이 (White Grubs)",
+                subtitle: "Root Feeders",
+                desc: "풍뎅이 유충이 뿌리를 갉아먹어 수분 흡수를 차단. 까치나 멧돼지에 의한 2차 훼손 피해가 더 심각할 수 있습니다.",
+                signal: "LST 국소 급등 (뿌리 절단) + 불규칙 갈변",
+                machine: "<strong>스파이킹:</strong> 약제 침투 통로 확보<br><strong>롤링/복토:</strong> 들뜬 뿌리 눌러주기, 건조 방지",
+                fert: "<strong>발근제:</strong> 아미노산/해조추출물 관주<br><strong>수분 공급:</strong> 뿌리가 손상되었으므로 잦은 관수",
+                chem: "<strong>예방:</strong> Imidacloprid (산란기 살포)<br><strong>치료:</strong> Trichlorfon (유충 확인 시 타격)"
+            }
+        };
+
+        function switchTab(key) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-primary', 'text-white', 'border-primary');
+                btn.classList.add('bg-white', 'text-gray-600', 'border-gray-300');
+            });
+            event.target.classList.add('active', 'bg-primary', 'text-white', 'border-primary');
+            event.target.classList.remove('bg-white', 'text-gray-600', 'border-gray-300');
+
+            const data = ipmData[key];
+            const html = `
+                <div class="grid lg:grid-cols-2 gap-12 animate-fade-in">
+                    <div class="flex flex-col justify-center">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded text-xs font-bold uppercase tracking-wider border border-gray-200">AI Diagnosis</span>
+                            <h3 class="text-3xl font-bold text-gray-900 m-0">${data.title}</h3>
+                        </div>
+                        <p class="text-gray-500 italic mb-6 border-b pb-4">${data.subtitle}</p>
+                        <p class="text-lg text-gray-700 mb-8 leading-relaxed">${data.desc}</p>
+                        <div class="bg-gray-50 border-l-4 border-gray-800 p-6 rounded-r-lg">
+                            <h4 class="font-bold text-gray-900 mb-2 flex items-center"><i class="fas fa-satellite-dish mr-3 text-gray-600"></i>CatSat™ 감지 신호</h4>
+                            <p class="text-gray-700 font-medium">${data.signal}</p>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="action-card type-machine p-6 rounded-xl bg-blue-50 border-l-4 border-blue-500 hover:shadow-md transition">
+                            <h4 class="font-bold text-blue-800 mb-2 flex items-center text-lg"><i class="fas fa-tractor w-8"></i>기계적 조치</h4>
+                            <p class="text-sm text-gray-700 leading-relaxed">${data.machine}</p>
+                        </div>
+                        <div class="action-card type-fert p-6 rounded-xl bg-green-50 border-l-4 border-green-500 hover:shadow-md transition">
+                            <h4 class="font-bold text-green-800 mb-2 flex items-center text-lg"><i class="fas fa-seedling w-8"></i>경종적 조치</h4>
+                            <p class="text-sm text-gray-700 leading-relaxed">${data.fert}</p>
+                        </div>
+                        <div class="action-card type-chem p-6 rounded-xl bg-red-50 border-l-4 border-red-500 hover:shadow-md transition">
+                            <h4 class="font-bold text-red-800 mb-2 flex items-center text-lg"><i class="fas fa-flask w-8"></i>화학적 조치</h4>
+                            <p class="text-sm text-gray-700 leading-relaxed">${data.chem}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('ipm-content').innerHTML = html;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('largepatch');
+            reveal();
+        });
+    </script>
+</body>
+</html>
